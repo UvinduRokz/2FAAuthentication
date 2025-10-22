@@ -1,0 +1,122 @@
+# =========================
+# Global
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Build outputs
+/build/
+dist/
+out/
+tmp/
+logs/
+target/
+coverage/
+
+# =========================
+# Flutter / Dart
+# =========================
+# Flutter/Dart build files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+generated_plugin_registrant.dart
+
+# Android (Flutter)
+android/.gradle/
+android/local.properties
+android/app/debug
+android/app/profile
+android/app/release
+
+# iOS (Flutter)
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Pods/
+ios/Podfile.lock
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Web (Flutter)
+web/.dart_tool/
+web/build/
+
+# =========================
+# Spring Boot / Java
+# =========================
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ / Eclipse / VS Code
+.idea/
+*.iws
+*.ipr
+*.iml
+.project
+.classpath
+.settings/
+bin/
+
+# Logs and runtime files
+*.log
+*.out
+*.pid
+
+# =========================
+# Miscellaneous
+# =========================
+# OS generated
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Node (if using Firebase, web scripts, etc.)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# =========================
+# Security
+# =========================
+# Keys and configs
+*.keystore
+*.jks
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+
+# Sensitive files
+secret.*
+*.secrets.json
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
