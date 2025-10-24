@@ -83,7 +83,14 @@ class ApiService {
         final uid = (data['userId'] is int)
             ? data['userId']
             : int.tryParse(data['userId'].toString());
-        return ApiResponse(success: false, message: message, userId: uid);
+        final twoFaExpired = data['twoFaExpired'] ?? false;
+
+        return ApiResponse(
+          success: false,
+          message: message,
+          userId: uid,
+          user: data.containsKey('username') ? User.fromJson(data) : null,
+        );
       }
 
       final message = data['message'] ?? 'Invalid credentials';

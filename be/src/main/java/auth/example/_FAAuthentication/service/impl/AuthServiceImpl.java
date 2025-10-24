@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Optional;
 import java.io.ByteArrayOutputStream;
@@ -57,7 +60,32 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (user.isTwoFaEnabled()) {
-            return ResponseEntity.ok(new TwoFaRequiredDTO("2FA required. Please verify your OTP.", user.getId()));
+
+            // LAZY CHECK (DB flag) — quick, authoritative flag set by scheduler or admin actions.
+            // Advantages: very cheap to evaluate (single boolean read), centralized (one place to
+            // enforce expiry across devices and sessions), audit-friendly, and supports admin/operator
+            // control (they can flip the flag to force re-verification).
+            //
+            // Drawback: relies on the scheduler to keep the flag up-to-date; there may be a short
+            // window between the expiry moment and the scheduler run (depending on cron frequency).
+            // Use this as the first check to short-circuit and avoid extra work when possible.
+            if (user.isTwoFaExpired()) {
+                return ResponseEntity.ok(new TwoFaRequiredDTO("2FA required. Please verify your OTP.", user.getId()));
+            }
+
+//            // RUNTIME/TIMESTAMP CHECK — immediate, computed on-the-fly from last verified timestamp.
+//            // Advantages: no dependence on scheduler cadence (immediate enforcement at login time),
+//            // precise to the second if implemented with Duration, and useful for short-lived sessions.
+//            //
+//            // Drawback: it duplicates expiry logic (if you also use a DB-flag), and does not provide a
+//            // single source of truth for cross-device/admin control. It also requires accurate server
+//            // clocks across instances (clock skew can affect results).
+//            //
+//            // This runs only if the DB-flag did not already require re-verification.
+//            boolean needs2FA = isTwoFAExpired(user);
+//            if (needs2FA) {
+//                return ResponseEntity.ok(new TwoFaRequiredDTO("2FA required. Please verify your OTP.", user.getId()));
+//            }
         }
 
         SuccessfulLoginDTO dto = new SuccessfulLoginDTO(user.getId(), user.getUsername(), user.getEmail(), "Login Successful", user.isTwoFaEnabled());
@@ -73,7 +101,6 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userOpt.get();
 
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
         GoogleAuthenticatorKey key = gAuth.createCredentials();
 
         user.setTwoFaSecret(key.getKey());
@@ -139,6 +166,8 @@ public class AuthServiceImpl implements AuthService {
         boolean isValid = gAuth.authorize(user.getTwoFaSecret(), code);
         if (isValid) {
             user.setTwoFaEnabled(true);
+            user.setTwoFaExpired(false);
+            user.setTwoFaLastVerified(LocalDateTime.now());
             userRepository.save(user);
 
             SuccessfulLoginDTO dto = new SuccessfulLoginDTO(user.getId(), user.getUsername(), user.getEmail(), "Login Successful (2FA verified)", user.isTwoFaEnabled());
@@ -146,5 +175,16 @@ public class AuthServiceImpl implements AuthService {
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseDTO("Invalid 2FA code"));
         }
+    }
+
+    private boolean isTwoFAExpired(User user) {
+        if (user.getTwoFaLastVerified() == null) {
+            return true;
+        }
+
+        LocalDateTime lastVerified = user.getTwoFaLastVerified();
+        long minutesSince = java.time.temporal.ChronoUnit.MINUTES.between(lastVerified, LocalDateTime.now());
+
+        return minutesSince >= 2; // expires after 2 minutes
     }
 }

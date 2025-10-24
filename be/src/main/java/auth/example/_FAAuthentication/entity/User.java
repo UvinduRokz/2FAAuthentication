@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -22,4 +24,10 @@ public class User {
 
     @Column(name = "two_fa_secret")
     private String twoFaSecret;
+
+    @Column(name = "two_fa_last_verified")
+    private LocalDateTime twoFaLastVerified;
+
+    @Column(name = "two_fa_expired")
+    private boolean twoFaExpired = false;
 }

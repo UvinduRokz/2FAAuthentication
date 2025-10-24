@@ -13,8 +13,17 @@ class AuthController extends GetxController {
       Get.offAllNamed('/home');
     } else {
       if (!response.success && response.userId != null) {
-        pending2FaUserId.value = response.userId;
-        Get.toNamed('/2fa-verify');
+        // 🔹 new: check expiration
+        if (response.message.toLowerCase().contains('expired')) {
+          Get.snackbar('2FA Expired', 'Please re-verify your 2FA setup.');
+          Get.toNamed('/2fa-verify', arguments: {
+            'userId': response.userId,
+            'expired': true,
+          });
+        } else {
+          pending2FaUserId.value = response.userId;
+          Get.toNamed('/2fa-verify');
+        }
       }
     }
     return response;

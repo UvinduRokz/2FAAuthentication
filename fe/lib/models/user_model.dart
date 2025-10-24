@@ -3,12 +3,16 @@ class User {
   final String username;
   final String email;
   final bool twoFaEnabled;
+  final bool twoFaExpired; // 👈 new
+  final DateTime? twoFaLastVerified; // 👈 new (optional)
 
   User({
     required this.id,
     required this.username,
     required this.email,
     this.twoFaEnabled = false,
+    this.twoFaExpired = false,
+    this.twoFaLastVerified,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -16,8 +20,11 @@ class User {
       id: json['id'],
       username: json['username'],
       email: json['email'],
-      twoFaEnabled:
-          json['twoFaEnabled'] == null ? false : json['twoFaEnabled'] as bool,
+      twoFaEnabled: json['twoFaEnabled'] ?? false,
+      twoFaExpired: json['twoFaExpired'] ?? false,
+      twoFaLastVerified: json['twoFaLastVerified'] != null
+          ? DateTime.tryParse(json['twoFaLastVerified'])
+          : null,
     );
   }
 
@@ -25,15 +32,25 @@ class User {
         'username': username,
         'email': email,
         'twoFaEnabled': twoFaEnabled,
+        'twoFaExpired': twoFaExpired,
+        'twoFaLastVerified': twoFaLastVerified?.toIso8601String(),
       };
 
-  User copyWith(
-      {int? id, String? username, String? email, bool? twoFaEnabled}) {
+  User copyWith({
+    int? id,
+    String? username,
+    String? email,
+    bool? twoFaEnabled,
+    bool? twoFaExpired,
+    DateTime? twoFaLastVerified,
+  }) {
     return User(
       id: id ?? this.id,
       username: username ?? this.username,
       email: email ?? this.email,
       twoFaEnabled: twoFaEnabled ?? this.twoFaEnabled,
+      twoFaExpired: twoFaExpired ?? this.twoFaExpired,
+      twoFaLastVerified: twoFaLastVerified ?? this.twoFaLastVerified,
     );
   }
 }
